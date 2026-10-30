@@ -247,6 +247,7 @@ class VocabVaultApp(ctk.CTk):
         self.frames[frame_name].grid(row=0, column=1, sticky="nsew", padx=25, pady=25)
         
         if frame_name == "flashcard": self.next_flashcard()
+        elif frame_name == "add": self.entry_eng.focus()
         elif frame_name == "quiz":
             self.quiz_streak = 0
             self.timer_running = False
@@ -466,9 +467,23 @@ class VocabVaultApp(ctk.CTk):
         self.entry_ex = ctk.CTkEntry(frame, placeholder_text="Example Sentence (Optional)", fg_color=CARD_BG, text_color=TEXT_COLOR, width=500, height=55, font=("Segoe UI", 16))
         self.entry_ex.pack(pady=10)
 
-        ctk.CTkButton(frame, text="💾 Save to Vault", width=500, height=60, font=("Segoe UI", 18, "bold"), fg_color=ACCENT, hover_color="#1e8b49", text_color="white", command=self.add_word).pack(pady=25)
+        # Enter Kısayolu Bağlantıları
+        self.entry_eng.bind("<Return>", lambda e: self.on_add_entry_enter("eng"))
+        self.entry_turk.bind("<Return>", lambda e: self.on_add_entry_enter("turk"))
+        self.entry_ex.bind("<Return>", lambda e: self.on_add_entry_enter("ex"))
+
+        ctk.CTkButton(frame, text="💾 Save to Vault (Press Enter)", width=500, height=60, font=("Segoe UI", 18, "bold"), fg_color=ACCENT, hover_color="#1e8b49", text_color="white", command=self.add_word).pack(pady=25)
         self.lbl_add_status = ctk.CTkLabel(frame, text="", font=("Segoe UI", 15))
         self.lbl_add_status.pack()
+
+    def on_add_entry_enter(self, field_type):
+        if field_type == "eng":
+            if self.entry_turk.get().strip():
+                self.add_word()
+            else:
+                self.entry_turk.focus()
+        elif field_type == "turk" or field_type == "ex":
+            self.add_word()
 
     def add_word(self):
         target = self.deck_selector_var.get()
@@ -514,6 +529,7 @@ class VocabVaultApp(ctk.CTk):
         
         self.entry_new_deck = ctk.CTkEntry(tools, placeholder_text="New Deck Name", fg_color=CARD_BG, text_color=TEXT_COLOR, width=180)
         self.entry_new_deck.pack(side="left", padx=5)
+        self.entry_new_deck.bind("<Return>", lambda e: self.create_deck())
         ctk.CTkButton(tools, text="Create", width=70, fg_color=HEADER_BG, text_color=TEXT_COLOR, command=self.create_deck).pack(side="left")
         
         self.entry_search = ctk.CTkEntry(tools, placeholder_text="🔍 Search words...", fg_color=CARD_BG, text_color=TEXT_COLOR, width=200)
@@ -702,7 +718,11 @@ class VocabVaultApp(ctk.CTk):
             self.refresh_deck_list()
             win.destroy()
             
-        ctk.CTkButton(win, text="Update", fg_color=ACCENT, text_color="white", command=save_edit).pack(pady=25)
+        entry_w.bind("<Return>", lambda e: save_edit())
+        entry_m.bind("<Return>", lambda e: save_edit())
+        entry_ex.bind("<Return>", lambda e: save_edit())
+
+        ctk.CTkButton(win, text="Update (Enter)", fg_color=ACCENT, text_color="white", command=save_edit).pack(pady=25)
 
     def toggle_accordion(self, content_frame, btn):
         if content_frame.winfo_ismapped():
